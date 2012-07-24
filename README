@@ -1,0 +1,2 @@
+This project creates a bot with attached http server. Much of the bot code is based off of https://github.com/ktiedt/NodeJS-IRC-Bot. The server provides channel logs and satistics. This code is targeted to be run on cloudfoundry.
+
