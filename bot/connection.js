@@ -48,6 +48,7 @@ Connection.prototype.connect = function(){
 };
 
 //function that sumerizes sending data
+//TODO: make this async
 Connection.prototype.raw = function(){
     //merges all the arguments into a single msg
     var data = "" 
@@ -101,6 +102,17 @@ Connection.prototype.parseMsg = function(text, callback) {
      callback(parsedMsg);
 };
 
+//joins a list of channels
+Connection.prototype.joinChannels = function(chans){
+    //join each channel
+    for (var i = 0; i < chans.length; i++){
+        //send join command
+        var name = chans[i];
+        this.raw("JOIN", name);
+        console.log('Channel '+name+" joined!");
+    };
+};
+
 //Listener functions
 
 //#shifts scope so <this> refers to the connection object not the socket object
@@ -130,6 +142,9 @@ Connection.prototype.onConnect = function(){
     this.connected = true
 
     //TODO: add authentication code
+
+    //joins channels in the channel list
+    this.joinChannels(this.channels)
 };
 
 //#recives data, parses, and hands it off to the main bot object

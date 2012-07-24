@@ -10,7 +10,7 @@ var config = {
         server_1: {
             host: "irc.freenode.net",
             port: "6667",
-            channels: ['bendhacknslash']
+            channels: ['#bendhacknslash']
         }
     }
 };
