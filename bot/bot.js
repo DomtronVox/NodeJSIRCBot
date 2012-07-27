@@ -38,5 +38,5 @@ Bot.prototype.connect = function(){
 };
 
 Bot.prototype.handleMesage = function(msg){
-    
+    console.log(msg)
 };

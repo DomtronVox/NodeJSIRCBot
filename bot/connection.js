@@ -69,37 +69,48 @@ Connection.prototype.parseMsg = function(text, callback) {
     if (words.length < 2) {return false}
     
     //object to store the msg parts
-     var parsedMsg = {
-         prefix:  "",
-         nick:    "",
-         username:"",
-         network: "",
-         command: "",
-         body:    ""
+     var prefix  = ""
+       , nick    = ""
+       , username= ""
+       , channel = ""
+       , command = ""
+       , body    = "";
+     
+     //this sets the prefix which holds channel, network, username, ect
+     var prefix_end = text.indexOf(':', 2)-2;
+     prefix = text.substr(1, prefix_end);
+
+     //get nick, username command, and channel
+     pre_words = prefix.split(' ')
+     if (pre_words.length == 3){
+         var nick_end = prefix.indexOf('!~');
+         nick = pre_words[0].substring(0, nick_end);
+         
+         var user_end = prefix.indexOf('@');
+         username = pre_words[0].substring(nick_end+2, user_end);
+         
+         command = pre_words[1]
+         channel = pre_words[-1]
+     } else if (pre_words.length == 4){
+         nick = 'server'
+         username = 'server'
+         command = pre_words[1]
+         channel = pre_words[3]
      };
+
+     //find the body of the msg
+     body = text.substring(prefix_end+3)
      
-     var start, end;
-     //get the prefix
-     start = text.indexOf(':');
-     end = text.indexOf(':', start+1)+1;
-     parsedMsg.prefix = text.slice(start, end);
+     //hand off the parsed msg to the callback
+     callback(
+        { prefix: prefix
+        , nick: nick
+        , username: username
+        , channel: channel
+        , command: command
+        , body: body
+        });
      
-     //get the msg body
-     start = end;
-     parsedMsg.body = text.slice(start);
-     
-     //get the sender id's
-     parsedMsg.nick = text.slice(text.indexOf(':')+1, 
-                                 text.indexOf('!'));
-     parsedMsg.username = text.slice(text.indexOf('~')+1, 
-                                     text.indexOf('@'));
-     parsedMsg.network = text.slice(text.indexOf('@')+1,
-                                    text.indexOf(' '))
-     
-     //get the server command type
-     parsedMsg.command = parsedMsg.prefix.split(' ')[1]
-      
-     callback(parsedMsg);
 };
 
 //joins a list of channels
