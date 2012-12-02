@@ -11,14 +11,14 @@ Bot = exports.Bot = function(config){
 
 Bot.prototype.init = function(config){
     //identifiers for the bot
-    this.nick     = config.nick     || "Bot"
-    this.username = config.username || "Bot"
-    this.realname = config.realname || "Bot"
+    this.nick     = config.nick     || "IRC Bot"
+    this.username = config.username || "IRC Bot"
+    this.realname = config.realname || "IRC Bot"
     
-    //information related to servers
+    //information for connecting to servers
     this.server_data = config.servers || {}
     
-    //all servers the bot will join
+    //all server connection objects
     this.connections = {}
  
 };
@@ -29,7 +29,7 @@ Bot.prototype.connect = function(){
     for (name in this.server_data){
         var data = this.server_data[name]
 
-        //... use it to create the conection object
+        //... use it to create the connection object
         this.connections[name] = new Connection(data, this)
 
         //then connect to the server
@@ -39,4 +39,5 @@ Bot.prototype.connect = function(){
 
 Bot.prototype.handleMesage = function(msg){
     console.log(msg)
+    console.log("\n")
 };

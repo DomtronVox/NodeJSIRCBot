@@ -1,4 +1,4 @@
-//code that creates all major objects
+//code that creates/initiates bots and plugin manager
 
 var Bot = require('./bot/bot').Bot;
 
