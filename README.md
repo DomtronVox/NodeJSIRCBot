@@ -1,8 +1,10 @@
 # NodeJS IRC Bot
 
-This project creates a bot with attached http server. The bot and server connection code is loosely based off the https://github.com/ktiedt/NodeJS-IRC-Bot.
+This project creates a bot that uses plugins and can provide information through a web portal. The bot and IRC Network connection code is loosely based off the https://github.com/ktiedt/NodeJS-IRC-Bot.
 
 I plan to implement the following features: yaml configuration files, compatible with cloudfoundry, and a web interface that plugins can display information on (example statically serve logs).
+
+Currently the basic bot code is in place and I am working on plugins for it.
 
 ## Legal
 All code for this project is free to use with no restrictions and no guarantee of usability or safety.
@@ -51,7 +53,7 @@ The bot object has an event emitter with the following events:
 
 * 'connected' - Emitted when connected to a server. Passes one argument: the name of the server.
 * 'joined' - Emitted when an irc server is joined. Passes two arguments: the server name and the channel name.
-* 'message' - Emitted when a message is received from a channel. Passes one argument: a dictionary with information about the massage.
+* 'message' - Emitted when a message is received from a channel. Passes one argument: a dictionary with information about the message.
     * See sub-section 'Message Object'
 
 To handle events the plugin needs to add listeners to the bot object.
@@ -73,7 +75,7 @@ A message object is passed to plugins every time a message is received from the 
 * 'channel' - The channel from which the message originated. This will be an empty string if the message was sent by the server.
 * 'command' - The command labeled on the message. See the 'Commands' sub-section for a summery of commands and links to more information.
 * 'body' - the actual message that was sent.
-* 'full_message' - The full message recived from the server with no alterations.
+* 'full_message' - The full message received from the server with no alterations.
 
 #### IRC Message Commands
 TODO: Research the different commands irc networks send.
