@@ -1,48 +1,76 @@
-//This code handles the connection to irc servers 
-//  and sending/receiving messages
+//The irc_protocol handles connecting to irc networks. 
+//The following are events emitted by this plugin:
+// "message" - emitted when a message is received from the server. One argument
+//           the message object described in PLUGIN_API.md
+//  "connected" - emitted for each server successfully connected to the server 
+//The following are events that this plugin listens for:
+//  "send message" - 
+//  "exit" - Causes the plugin to disconnect from all servers.
 
 var net = require('net');
 
-Connection = exports.Connection = function(conn_config, bot){
-    //the connection's server and port 
-    this.host = conn_config['host']
-    this.port = conn_config['port']
+//configure the plugin
+exports.Plugin = function(bot, config) {
+    //information for connecting to servers
+    //TODO: properly handle incorrect plugin config files(if possible in the bot code)
+    for (server_conf in config.servers){
+        //initialize
+        conn = new Connection(bot, config.servers[server_conf]);
+        //connect
+        conn.connect();
+    };
+}
 
-    //in what formate to send data in
-    this.encoding = conn_config['encoding'] || 'utf8'
+
+Connection = function(bot, config){
+    //identifiers for the bot
+    this.nick     = config.nick     || "IRC Bot"
+    this.username = config.username || "IRC Bot"
+    this.realname = config.realname || "IRC Bot"
+
+    //the connection's server and port 
+    this.host = config['host'];
+    this.port = config['port'];
+
+    //in what text encoding to send data in
+    this.encoding = config['encoding'] || 'utf8';
 
     //cumulation of msg chunks and msg that have not been processed.
-    this.buffer = "" 
+    this.buffer = "";
 
-    //amount of time(in milliseconds?) with no response 
+    //amount of time(in milliseconds) with no response 
     //    before the connection is closed 
     this.timeout = 60*60*1000;
     
     //the socket object
-    this.socket = new net.Socket()
+    this.socket = new net.Socket();
     
     //channels to connect to
-    this.channels = conn_config['channels']
+    this.channels = config['channels'];
 
     //connection status
-    this.connected = false
+    this.connected = false;
     
     //bot object for relaying parsed messages, and basic information
-    this.bot = bot
+    this.bot = bot;
+
+    //add listeners to the bot for this connection
+    bot.on("exit", this.disconnect);
+    //bot.on("send message", this.sendMessage);
 };
 
 //connects to a irc server
 Connection.prototype.connect = function(){
-    //add listeners  
-    this.addListener('connect', this.onConnect)
-    this.addListener('data'   , this.onData)
-    //Note: listener functions are at the end of this file
+    //add server listeners  
+    this.addListener('connect', this.onConnect);
+    this.addListener('data'   , this.onData);
+    //**Note**: listener functions are at the end of this file
     
     //socket object
-    socket = this.socket
+    socket = this.socket;
     
     //add some self explanatory data to the socket then connect
-    socket.setTimeout(this.timeout)
+    socket.setTimeout(this.timeout);
     socket.setEncoding(this.encoding);
     socket.setNoDelay();
     socket.connect(this.port, this.host);
@@ -50,7 +78,7 @@ Connection.prototype.connect = function(){
 
 //disconnect from the server
 Connection.prototype.disconnect = function (){
-    //only send disconnect when connected
+    //only disconnect when connected
     if (this.connected == true){
         this.socket.end();
         this.connected = false;
@@ -58,25 +86,25 @@ Connection.prototype.disconnect = function (){
 };
 
 //concatenates arguments into a msg, then sends it.
-//TODO: make this asynchronous
 Connection.prototype.raw = function(){
     //merges all the arguments into a single msg
     var data = "" 
     for (i in arguments) data += ' ' + arguments[i]
-    data += "\r\n";//add end of msg characters
+    data += "\r\n"; //add end of msg characters
     
     //send the msg
     this.socket.write(data, this.encoding)
 };
 
-//convert the msg from a string to a dictionary
-Connection.prototype.parseMsg = function(text, callback) {
+//parse the incoming string message to a dictionary
+Connection.prototype.handleMsg = function(text) {
+    //TODO: parsing needs to be more exact.
     //verify the given msg is a string
     if (typeof text  !== "string") {return false};
     
     //make sure there are at least 2 words in the msg
     var words = text.split(" ");
-    if (words.length < 2) {return false}
+    if (words.length < 2) {return false};
     
     //variables to store the msg parts
      var prefix  = " "
@@ -94,7 +122,6 @@ Connection.prototype.parseMsg = function(text, callback) {
 
      //get nick, username, command, and channel
      pre_words = prefix.trim().split(' ')
-     console.log(pre_words)
      if (pre_words[0] == 'PING'){
          nick = 'server'
          username = 'server'
@@ -107,8 +134,8 @@ Connection.prototype.parseMsg = function(text, callback) {
          username = pre_words[0].substring(nick_end+2, user_end);
          
          command = pre_words[1]
-         channel = pre_words[-1]
-         console.log(pre_words[2])
+         channel = pre_words[pre_words.length-1]
+         
      } else if (pre_words.length == 4){
          nick = 'server'
          username = 'server'
@@ -119,12 +146,13 @@ Connection.prototype.parseMsg = function(text, callback) {
      //find the body of the msg
      body = text.substring(prefix_end+1)
      
-     //hand off the parsed msg to the callback
-     callback(
-        { prefix: prefix.trim()
+     //emit the message event
+     this.bot.emit('message',
+        { server: this.host
+        , prefix: prefix.trim()
         , nick: nick.trim()
         , username: username.trim()
-        , channel: channel.trim()
+        , channel: channel.trim() 
         , command: command.trim()
         , body: body.trim()
         , full_message: text.trim()
@@ -139,7 +167,7 @@ Connection.prototype.joinChannels = function(channs){
         //send join command
         var name = channs[i];
         this.raw("JOIN", name);
-        console.log('Channel '+name+" joined!");
+        console.log('Sent join command for '+name);
     };
 };
 
@@ -161,19 +189,16 @@ Connection.prototype.addListener = function(event, callback) {
 Connection.prototype.onConnect = function(){
     console.log("Established connection to "+this.host);
     
-    //shortens bot data reference
-    bot = this.bot
-    
     //send id information to the server
-    this.raw('NICK', bot.nick)
-    this.raw('USER', bot.username, '0', '*', ':', bot.realname)
+    this.raw('NICK', this.nick)
+    this.raw('USER', this.username, '0', '*', ':', this.realname)
     
     console.log("Sent NICK and USER data.")
     
     //update the connection status
     this.connected = true
 
-    //TODO: add authentication code
+    //TODO: add sending authentication if provided
 
     //joins channels in the channel list
     this.joinChannels(this.channels)
@@ -205,16 +230,11 @@ Connection.prototype.onData = function(data){
             // handler in case a plugin needs it.
             if (msg.slice(0,4) == "PING" && this.connected) {
                 this.raw("PONG")
-                console.log("PONG")
             };
 
-            //parse the msg into an associative array and
-            // send the msg to the bot object msg handler function
-            
-            this.parseMsg(msg, function(){
-                //shifts scope so <this> refers to the bot object
-                this.bot.handleMesage.apply(this.bot, arguments)
-            });    
+            //parses the msg into an associative array and emmits the msg event
+            this.handleMsg(msg);
+    
         //otherwise stop the loop and wait for more
         } else {break};
     };

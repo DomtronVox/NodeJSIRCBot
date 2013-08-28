@@ -1,8 +1,10 @@
 # NodeJS IRC Bot
+## About
+This project aims to create an application that hosts multiple IRC bots and a web portal with related information like logs and statistics. There are two parts to this application: The Server and Bot Objects. Basic operations like data transfer will be built into these two parts while third party plugins will handle processing and displaying data.
 
-This project creates a bot that uses plugins and can provide information through a web portal. The bot and IRC Network connection code is loosely based off the https://github.com/ktiedt/NodeJS-IRC-Bot.
+    The Bot Object attempts to follow the specification for IRC clients as defined in RFC 1459. The bot and IRC Network connection code is loosely based off the https://github.com/ktiedt/NodeJS-IRC-Bot with numerous adjustments.
 
-I plan to implement the following features: yaml configuration files, compatible with cloudfoundry, and a web interface that plugins can display information on (example statically serve logs).
+I plan to implement the following features: yaml configuration files, application compatible with cloudfoundry, and a web interface that plugins can display information on (example statically serve logs).
 
 Currently the basic bot code is in place and I am working on plugins for it.
 
@@ -11,9 +13,14 @@ All code for this project is free to use with no restrictions and no guarantee o
 
 ## Prerequisites
 
-* NodeJS (tested under v0.6.5)
+NodeJS (tested under v0.9.3-pre)
+
+Note: Some plugins may have additional requirements.
 
 ## Code Documentation
+
+### Plugin API
+For details on developing your own plugins see the PLUGIN_API.md document in this repository.
 
 ### File Descriptions
 
@@ -22,7 +29,7 @@ bot/bot.js - Manages connections, plugins, and handles parsed messages.
 bot/connection.js - Handles connecting, disconnecting, pings, receiving/sending messages, and parsing messages to JASON.
 bot/plugins - folder where all the plugins should be placed.
 
-### Quick Outline
+### Quick Runtime Outline
 
 index.js initiates the bot and web server objects
 
@@ -34,48 +41,3 @@ bot connects to the servers and channels
 
 bot relays received messages to plugins
 
-### Plugin API
-
-Plugins should be placed in bot/plugins, and should contain basic info like description, author, and version. 
-
-The plugin should be an object exported as "Plugin", and needs to take the bot object as it's first argument.
-
-    Plugin = exports.Plugin = function(bot){
-    this.init(bot)
-    };
-    
-    //methods go here
-    Plugin.prototype.init(bot){
-    //initialization for the plugin.
-    };
-
-The bot object has an event emitter with the following events:
-
-* 'connected' - Emitted when connected to a server. Passes one argument: the name of the server.
-* 'joined' - Emitted when an irc server is joined. Passes two arguments: the server name and the channel name.
-* 'message' - Emitted when a message is received from a channel. Passes one argument: a dictionary with information about the message.
-    * See sub-section 'Message Object'
-
-To handle events the plugin needs to add listeners to the bot object.
-
-    Plugin.prototype.init(bot){
-        bot.addListener('message', this.onMsg)
-    };
-    
-    Plugin.prototype.onMsg = function(msg_object){
-        console.log('You have mail!")
-    };
-
-#### Message Object
-A message object is passed to plugins every time a message is received from the server. The message object is a dictionary with 7 key/value pairs:
-
-* 'prefix' - The prefix encodes information about the message like the channel, the sever, command codes, and the user sending the message. I believe the contents of the prefix varies between irc networks.
-* 'nick' - The nickname of the sender. This will be server if the message was sent by the server.
-* 'username' - The username of the sender. This will be server if the message was sent by the server.
-* 'channel' - The channel from which the message originated. This will be an empty string if the message was sent by the server.
-* 'command' - The command labeled on the message. See the 'Commands' sub-section for a summery of commands and links to more information.
-* 'body' - the actual message that was sent.
-* 'full_message' - The full message received from the server with no alterations.
-
-#### IRC Message Commands
-TODO: Research the different commands irc networks send.
