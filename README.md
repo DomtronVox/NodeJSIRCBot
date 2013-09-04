@@ -1,8 +1,8 @@
-# NodeJS IRC Bot
+# NodeJS Chat Bot
 ## About
-This project aims to create an application that hosts multiple IRC bots and a web portal with related information like logs and statistics. There are two parts to this application: The Server and Bot Objects. Basic operations like data transfer will be built into these two parts while third party plugins will handle processing and displaying data.
+This project aims to create a plugin focused application that hosts multiple chat bots and a http server where plugins can post information like logs and statistics.
 
-This project attempts to follow the specification for IRC clients as defined in RFC 1459. The bot and IRC Network irc protocol plugin is loosely based off the [ktiedt/NodeJS-IRC-Bot](https://github.com/ktiedt/NodeJS-IRC-Bot) with numerous adjustments.
+The irc_protocol plugin is loosely based off of [ktiedt/NodeJS-IRC-Bot](https://github.com/ktiedt/NodeJS-IRC-Bot) with numerous adjustments.
 
 I plan to implement the following features: 
 * yaml configuration files.

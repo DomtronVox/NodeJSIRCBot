@@ -1,62 +1,58 @@
-# Plugin API
-## Creating A Plugin
+# Creating A New Plugin
 A plugin should be in its own file in the folder bot/plugins, and should contain basic development information in comments near the top (i.e. description, author, and version). 
 
-The plugin should be an object exported as "Plugin", and needs to take the bot object as it's first argument.
+The file should export a function named "Plugin". This function needs to take the bot object as it's first argument and a config file as its second(example below). The exported function should create any objects it needs to operate.
 
-    Plugin = exports.Plugin = function(bot){
-    this.init(bot)
+    exports.Plugin = function(bot, config){
+        new CoolObject(bot, config);
     };
     
     //methods go here
-    Plugin.prototype.init(bot){
-    //initialization for the plugin.
-    //add listeners here also
+    CoolObject = function(bot, config){
+        //initialization for the plugin. Set object variables here.
+        this.awsome_variable = config.awsome_variable
+        this.polywogs = config.polywogs
+    
+        //add listeners to the bot here. (see plugin API)
+        bot.addListener("message", function(){console.log("a message!")})
     };
 
+# Plugin API
 ## Event Handling
-The bot object has an event emitter which can eimit the following events:
-
-* 'connected' - Emitted when a connection to a server is established. Passes one argument: the name of the server.
-* 'joined' - Emitted when an irc server is joined. Passes two arguments: the server name and the channel name.
-* 'message' - Emitted when a message is received from a channel. Passes one argument: a message object that brakes down the information about the message.
-    * See the section 'Message Object'.
+The bot object inharets from the node.js event emitter object. This means plugins can attach event listeners to the bot object (as shown above). Plugins can also emit their own events.
 
 To handle events the plugin needs to add listeners to the bot object.
 
-    Plugin.prototype.init(bot){
-        bot.addListener('message', this.onMsg)
+    CoolObject = function(bot, config){
+        bot.addListener('message', this.onMsg);
     };
     
-    Plugin.prototype.onMsg = function(msg_object){
-        console.log('You have mail!")
+    CoolObject.prototype.onMsg = function(msg_object){
+        console.log('You have mail!");
     };
 
-## Sending Data to the Server
-A plugin may need to send data or requests to the server. This can be done with:
+To emit your own event you must call bot.emit(event_name, arg1, arg2... argn). Avoid interfering with another plugin's emited events by using uniqe event names.
 
-    bot.sendMessage(command, arg1, arg2..., callback)
+    CoolObject.prototype.onMsg = function(msg_object){
+        bot.emit("MAIL!!", msg_object);
+    };
 
-Where the command and all arguments are strings and the callback is an optional function.
+## Events
+### Emited Events
+The following events are emited by the basic plugins included in this repository.
 
-All the commands transmitted between the bot and the sever are defined in [RFC 1459](http://www.irchelp.org/irchelp/rfc/rfc.html) chapter [4 - Message Details](http://www.irchelp.org/irchelp/rfc/chapter4.html). However, I will provide a short list of relevant commands here.
+* 'connected' - Emitted when a connection to a server is established. Passes one argument: the name of the server.
+* 'joined' - Emitted when an irc channel is joined. Passes two arguments: the server name and the channel name.
+* 'message' - Emitted when a message is received from a channel. Passes one argument: a message object that describes the message. See the section 'Apendix A - Message Object'.
 
-The list below follows the form: 
+### Events That Are Listened For 
+The following events are listened for by the basic plugins included in this repository and will accomplish the described task(s).
 
-    COMMAND [param list 1] [param list 2]. 
-    Param lists are in the form [param1,param2...]. 
-    A parameter name or a param list with a '*' preceding it denotes a optional parameter (i.e. *param 1, *[param1, param2]).
+* No events as of yet.
 
-* NICK [new_nick] - Used to change the bots' nickname.
-* JOIN [chan1,*chan2...] \*[pass1,pass2...] - Used to join the specified channel. The pass params are only needed if the channel is protected.
-* PART [chan1,*chan2...] - Used to leave the given channels.
-* NAMES [chan1,*chan2...] - Ask for a list of users present in each channel given.
-    
-So if you want the bot to join several channels you would:
 
-    bot.sendMessage('JOIN', '#linux', '#windows')
-
-## Message Object
+# Appendices 
+## Appendix A - Message Object
 A message object is passed to plugins every time a message is received from the server. The message object is a dictionary with 7 key/value pairs:
 
 * 'prefix' - The prefix encodes information about the message like the channel, the sever, command codes, and the user sending the message. I believe the contents of the prefix varies between irc networks.
@@ -66,3 +62,8 @@ A message object is passed to plugins every time a message is received from the 
 * 'command' - The command labeled on the message. See the 'Commands' sub-section for a summery of commands and links to more information.
 * 'body' - the actual message that was sent.
 * 'full_message' - The full message received from the server with no alterations.
+
+## Appendix B - Links To Protocol Specifications
+
+The irc_protocol plugin attempts to follow the specification for IRC clients as defined in [RFC 1459](http://www.irchelp.org/irchelp/rfc/rfc.html).
+
