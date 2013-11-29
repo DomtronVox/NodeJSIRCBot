@@ -1,6 +1,6 @@
 # NodeJS Chat Bot
 ## About
-This project aims to create a plugin focused application that hosts multiple chat bots and a http server where plugins can post information like logs and statistics.
+This project aims to create a plugin and API focused application that hosts multiple chat bots and a http server where plugins can post information like logs and statistics.
 
 The irc_protocol plugin is loosely based off of [ktiedt/NodeJS-IRC-Bot](https://github.com/ktiedt/NodeJS-IRC-Bot) with numerous adjustments.
 
@@ -31,8 +31,8 @@ For general details on configuring plugins and specific configuration options fo
 
 ### File Descriptions
 
-* index.js - Loads the configuration file and creates bots based on it.
-* bot.js - Manages plugins. Will probably provide the http server
-* plugins - Folder where all plugins should be placed.
+* index.js - Loads the configuration file and then creates the web server and bots.
+* bot.js - Manages plugins.
+* plugins/ - Folder where all plugins should be placed.
     * irc_protocol.js - Plugin that lets the bot connect to irc servers. Handles connecting, disconnecting, pings, receiving/sending messages, and parsing messages to JASON.
 

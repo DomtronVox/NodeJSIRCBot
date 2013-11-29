@@ -98,7 +98,7 @@ Connection.prototype.raw = function(){
 
 //parse the incoming string message to a dictionary
 Connection.prototype.handleMsg = function(text) {
-    //TODO: parsing needs to be more exact.
+    //TODO: parsing needs to handle server messages better.
     //verify the given msg is a string
     if (typeof text  !== "string") {return false};
     
@@ -198,7 +198,7 @@ Connection.prototype.onConnect = function(){
     //update the connection status
     this.connected = true
 
-    //TODO: add sending authentication if provided
+    //TODO: add sending authentication if provided in config
 
     //joins channels in the channel list
     this.joinChannels(this.channels)
@@ -227,7 +227,7 @@ Connection.prototype.onData = function(data){
             
             //if the msg is a ping then we must pong unless we have
             // disconnected. We will also pass the ping to the msg 
-            // handler in case a plugin needs it.
+            // handler in case another plugin needs it.
             if (msg.slice(0,4) == "PING" && this.connected) {
                 this.raw("PONG")
             };
@@ -235,7 +235,7 @@ Connection.prototype.onData = function(data){
             //parses the msg into an associative array and emmits the msg event
             this.handleMsg(msg);
     
-        //otherwise stop the loop and wait for more
+        //if not; stop the loop and wait for more
         } else {break};
     };
 };

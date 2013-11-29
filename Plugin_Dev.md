@@ -1,7 +1,7 @@
 # Creating A New Plugin
-A plugin should be in its own file in the folder bot/plugins, and should contain basic development information in comments near the top (i.e. description, author, and version). 
+A plugin should be in its own file in the folder bot/plugins, and should contain basic development information in comments near the top (i.e. description, author, version, events emitted, and events listened for). 
 
-The file should export a function named "Plugin". This function needs to take the bot object as it's first argument and a config file as its second(example below). The exported function should create any objects it needs to operate.
+The file should export a function named "Plugin". This function needs to take the bot object as it's first argument and a configuration file as its second(example below). The exported function should create any objects it needs to operate.
 
     exports.Plugin = function(bot, config){
         new CoolObject(bot, config);
@@ -19,7 +19,7 @@ The file should export a function named "Plugin". This function needs to take th
 
 # Plugin API
 ## Event Handling
-The bot object inharets from the node.js event emitter object. This means plugins can attach event listeners to the bot object (as shown above). Plugins can also emit their own events.
+The bot object inherits from the node.js event emitter object. This means plugins can attach event listeners to the bot object (as shown above). Plugins can also emit their own events.
 
 To handle events the plugin needs to add listeners to the bot object.
 
@@ -31,7 +31,7 @@ To handle events the plugin needs to add listeners to the bot object.
         console.log('You have mail!");
     };
 
-To emit your own event you must call bot.emit(event_name, arg1, arg2... argn). Avoid interfering with another plugin's emited events by using uniqe event names.
+To emit your own event you must call bot.emit(event_name, arg1, arg2... argn). Avoid interfering with another plugin's emitted events by using unique event names.
 
     CoolObject.prototype.onMsg = function(msg_object){
         bot.emit("MAIL!!", msg_object);
@@ -39,9 +39,10 @@ To emit your own event you must call bot.emit(event_name, arg1, arg2... argn). A
 
 ## Events
 ### Emited Events
-The following events are emited by the basic plugins included in this repository.
+The following events are emitted by the basic plugins included in this repository.
 
 * 'connected' - Emitted when a connection to a server is established. Passes one argument: the name of the server.
+* 'disconnected' - Emitted when a connection to a server is droped. Passes one argument: the name of the server.
 * 'joined' - Emitted when an irc channel is joined. Passes two arguments: the server name and the channel name.
 * 'message' - Emitted when a message is received from a channel. Passes one argument: a message object that describes the message. See the section 'Apendix A - Message Object'.
 
