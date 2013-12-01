@@ -18,7 +18,8 @@ All code for this project is free to use with no restrictions and no guarantees.
 
 ## Prerequisites
 
-NodeJS (tested under v0.9.3-pre)
+* NodeJS
+* Express
 
 __Note: When installing 3rd party plugins there may be additional requirements.__
 

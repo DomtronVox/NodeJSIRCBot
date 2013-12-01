@@ -49,18 +49,19 @@ The following events are emitted by the basic plugins included in this repositor
 ### Events That Are Listened For 
 The following events are listened for by the basic plugins included in this repository and will accomplish the described task(s).
 
-* No events as of yet.
+* 'message'
+    * message_logger: appends the message to a channel log.
 
 
 # Appendices 
 ## Appendix A - Message Object
-A message object is passed to plugins every time a message is received from the server. The message object is a dictionary with 7 key/value pairs:
+A message object is passed to plugins every time a message is received from a server. The message object is a dictionary with 7 key/value pairs:
 
 * 'prefix' - The prefix encodes information about the message like the channel, the sever, command codes, and the user sending the message. I believe the contents of the prefix varies between irc networks.
 * 'nick' - The nickname of the sender. This will be server if the message was sent by the server.
 * 'username' - The username of the sender. This will be server if the message was sent by the server.
-* 'channel' - The channel from which the message originated. This will be an empty string if the message was sent by the server.
-* 'command' - The command labeled on the message. See the 'Commands' sub-section for a summery of commands and links to more information.
+* 'channel' - The channel from which the message originated. This will be the bot's name if the message was sent by the server.
+* 'command' - The IRC command labeled on the message. See the 'Commands' sub-section for a summery of commands and links to more information.
 * 'body' - the actual message that was sent.
 * 'full_message' - The full message received from the server with no alterations.
 

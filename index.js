@@ -15,11 +15,15 @@ var plugins = {
                 channels: ['#bendhacknslash']
             }
         }
+    },
+    message_logger:{
+        directory: "static/logs"
     }
+
 };
 
 var Server = require('./server').Server(debug);
 var Bot = require('./bot').Bot;
 
 
-var bot1 = new Bot(plugins)
+var bot1 = new Bot(plugins, debug)

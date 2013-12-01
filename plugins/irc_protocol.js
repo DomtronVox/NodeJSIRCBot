@@ -1,4 +1,7 @@
-//The irc_protocol handles connecting to irc networks. 
+//Author: DomtronVox
+//Vertion: 0.5
+//Description: The irc_protocol handles connecting to irc networks. 
+//
 //The following are events emitted by this plugin:
 // "message" - emitted when a message is received from the server. One argument
 //           the message object described in PLUGIN_API.md
@@ -167,7 +170,7 @@ Connection.prototype.joinChannels = function(channs){
         //send join command
         var name = channs[i];
         this.raw("JOIN", name);
-        console.log('Sent join command for '+name);
+        this.bot.log('Sent join command for '+name);
     };
 };
 
@@ -187,13 +190,13 @@ Connection.prototype.addListener = function(event, callback) {
 
 //#protocol stuff that must be done after the connection to the server
 Connection.prototype.onConnect = function(){
-    console.log("Established connection to "+this.host);
+    this.bot.log("Established connection to "+this.host);
     
     //send id information to the server
     this.raw('NICK', this.nick)
     this.raw('USER', this.username, '0', '*', ':', this.realname)
     
-    console.log("Sent NICK and USER data.")
+    this.bot.log("Sent NICK and USER data.")
     
     //update the connection status
     this.connected = true
