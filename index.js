@@ -3,18 +3,24 @@
 //debug messages are on if true
 var debug = true
 
-var plugins = {
-    irc_protocol:{
+/*
+irc_protocol:{
         servers: {
             server_1: {
-                nick: "domBot",
+                nick: "domtest",
                 username: "TestBot",
                 realname: "TestBot",
-                host: "irc.freenode.net",
+                host: "irc.nightstar.net",
                 port: "6667",
-                channels: ['#bendhacknslash']
+                channels: ['#test221']
             }
         }
+    }
+*/
+
+var plugins = {
+    discord_protocol:{
+        token:""
     },
     message_logger:{
         directory: "static/logs"
@@ -24,6 +30,5 @@ var plugins = {
 
 var Server = require('./server').Server(debug);
 var Bot = require('./bot').Bot;
-
 
 var bot1 = new Bot(plugins, debug)
