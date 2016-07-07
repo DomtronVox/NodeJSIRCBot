@@ -46,7 +46,7 @@ Logger.prototype.onMessage = function(msg){
         //decide on filename based on date
         var date = new Date();
         var name = date.getDate()+'-'+date.getMonth()+'-'+date.getFullYear()+'.txt';
-        var time = date.getHours()+':'+date.getMinutes()+':'+date.getSeconds();
+        var time = '['+date.getHours()+':'+date.getMinutes()+':'+date.getSeconds()+']';
 
         var frmtd_msg = time +' '+ msg.nick.trim() + ': ' + msg.body + '\n';
            
