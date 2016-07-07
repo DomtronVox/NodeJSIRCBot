@@ -1,15 +1,14 @@
 //Author: DomtronVox
-//Vertion: 0.3
-//Description: message_logger listens for messages and then adds them to a channel specific, date specific, staticly served text file.
+//Version: 0.3
+//Description: message_logger listens for messages and then adds them to a channel specific, date specific, statically served text file.
 //
 //The following are events emitted by this plugin:
 // none
 //The following are events that this plugin listens for:
-// "message" - places the message body into a staticly served log.
-
-//TODO: make sure this can log messages other then irc
+// "message" - places the message body into a statically served log.
 
 var fs = require('fs');
+var path = require('path');
 
 exports.Plugin = function(bot, config){
 
@@ -41,27 +40,52 @@ Logger = function(bot, config){
 
 //create a string from the message object and append it to the correct file
 Logger.prototype.onMessage = function(msg){
-    if (msg.command == "PRIVMSG" && msg.channel[0] == '#'){
+    if (msg.command == "PRIVMSG"){
         bot = this;
 
-        //varify the existance of the channel log folder
-        fs.exists("static/logs/"+msg.channel.substr(1), function(exists){ 
-            if (!exists) fs.mkdir("static/logs/"+msg.channel.substr(1));
-        });
-
-        //dicide on filename based on date
+        //decide on filename based on date
         var date = new Date();
         var name = date.getDate()+'-'+date.getMonth()+'-'+date.getFullYear()+'.txt';
         var time = date.getHours()+':'+date.getMinutes()+':'+date.getSeconds();
 
-        frmtd_msg = time +' '+ msg.nick.trim() + ': ' + msg.body + '\n';
-        log_path = "static/logs/"+msg.channel.substr(1)+"/"+name;
-        fs.exists(log_path, function(exists){
-            //if the file exists add the message to the end
-            if (exists) fs.appendFile(log_path, frmtd_msg);
+        var frmtd_msg = time +' '+ msg.nick.trim() + ': ' + msg.body + '\n';
+           
+        var log_path = "static/logs/"+msg.server+"/"+msg.channel+"/";
+        var file_path = log_path+name
+
+        //verify the existence of the channel log folder
+        fs.exists(log_path, function(exists){ 
+            fs.mkdirParent(log_path)
+
+            //verify existence of log file
+            fs.exists(file_path, function(exists){
+                //if the file exists add the message to the end
+                if (exists) fs.appendFile(file_path, frmtd_msg);
             
-            //if the log file does not exist create it and then add the message
-            else  fs.writeFile(log_path, frmtd_msg, function(err){bot.log(err)});
+                //if the log file does not exist create it and then add the message
+                else  { 
+                    fs.writeFile(file_path, frmtd_msg, function(err){
+                        if (err) bot.log("message_logger", "error", err)
+                    });
+                }
+            })
         })
     }
 }
+
+
+//taken from http://lmws.net/making-directory-along-with-missing-parents-in-node-js
+fs.mkdirParent = function(dirPath, mode, callback) {
+  //Call the standard fs.mkdir
+  fs.mkdir(dirPath, mode, function(error) {
+    //When it fail in this way, do the custom steps
+    if (error && error.errno === 34) {
+      //Create all the parents recursively
+      fs.mkdirParent(path.dirname(dirPath), mode, callback);
+      //And then the directory
+      fs.mkdirParent(dirPath, mode, callback);
+    }
+    //Manually run the callback since we used our own callback to do all these
+    callback && callback(error);
+  });
+};
