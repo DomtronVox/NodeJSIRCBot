@@ -1,5 +1,5 @@
 //Author: DomtronVox
-//Vertion: 0.5
+//Version: 0.5
 //Description: The irc_protocol handles connecting to irc networks. 
 //
 //The following are events emitted by this plugin:
@@ -54,7 +54,7 @@ Connection = function(bot, config){
     //connection status
     this.connected = false;
     
-    //bot object for relaying parsed messages, and basic information
+    //bot variable for relaying parsed messages, and basic information
     this.bot = bot;
 
     //add listeners to the bot for this connection
@@ -62,11 +62,14 @@ Connection = function(bot, config){
     //bot.on("send message", this.sendMessage);
 };
 
-//connects to a irc server
+//connects to an irc server
 Connection.prototype.connect = function(){
     //add server listeners  
     this.addListener('connect', this.onConnect);
     this.addListener('data'   , this.onData);
+    this.addListener('end'    , this.onEnd);
+    this.addListener('timeout', this.onTimeout);
+    this.addListener('error'  , this.onError);
     //**Note**: listener functions are at the end of this file
     
     //socket object
@@ -85,6 +88,9 @@ Connection.prototype.disconnect = function (){
     if (this.connected == true){
         this.socket.end();
         this.connected = false;
+
+        this.bot.log("IRC Connection has been disconnected:");
+        this.bot.log("    address: "+this.host+":"+this.port);
     }; 
 };
 
@@ -193,9 +199,11 @@ Connection.prototype.onConnect = function(){
     this.bot.log("Established connection to "+this.host);
     
     //send id information to the server
+    this.raw('CAP LS')
     this.raw('NICK', this.nick)
     this.raw('USER', this.username, '0', '*', ':', this.realname)
-    
+    this.raw('CAP END')
+
     this.bot.log("Sent NICK and USER data.")
     
     //update the connection status
@@ -234,7 +242,7 @@ Connection.prototype.onData = function(data){
             if (msg.slice(0,4) == "PING" && this.connected) {
                 this.raw("PONG")
             };
-
+            this.bot.log("debug message: "+msg)
             //parses the msg into an associative array and emmits the msg event
             this.handleMsg(msg);
     
@@ -243,9 +251,18 @@ Connection.prototype.onData = function(data){
     };
 };
 
+//#called when we recive a FIN package
+Connection.prototype.onEnd = function(data){
+    this.bot.log("IRC server ended connection.");
+};
 
+//#called when the connection times out
+Connection.prototype.onTimeout = function(data){
+    this.bot.log("Timeout: Connection closing because of inactivity.");
+};
 
-
-
-
-
+//#called when an error occures
+Connection.prototype.onError = function(err){
+    this.bot.log(""+err);
+    this.disconnect();
+};
