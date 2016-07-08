@@ -40,7 +40,7 @@ Logger = function(bot, config){
 
 //create a string from the message object and append it to the correct file
 Logger.prototype.onMessage = function(msg){
-    if (msg.command == "PRIVMSG"){
+    if (msg.server && msg.channel){
         bot = this;
 
         //decide on filename based on date
