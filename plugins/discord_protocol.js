@@ -14,6 +14,8 @@ DiscordConnection = function(bot, config){
     client.log = this.log
     client.botApp = bot
 
+    client.sendMessages = this.sendMessages
+
     //settup client listeners
     client.on('ready', this.onConnect)
     client.on('message', this.onMessage)
@@ -38,24 +40,35 @@ DiscordConnection.prototype.onConnect = function() {
 DiscordConnection.prototype.onMessage = function(user, userID, channelID, message, event) {
   
     if (message === "ping") {
-	sendMessages(channelID, ["Pong"]); //Sending a message with our helper function
+	this.sendMessages(channelID, ["Pong"]); //Sending a message with our helper function
     }
-    console.log(this)
-
-    //hunt down some values
-    var serverID = this.channels[channelID].guild_id;
-
+   
+    //build the common parts of the message object
     var message_object = { 
           protocol: "discord"
-        , server: this.servers[serverID].name
-        , prefix: {userID:userID, serverID: serverID, channelID:channelID}
+        , prefix: {userID:userID, channelID:channelID}
         , nick: user
         , username: user+'#'+userID
-        , channel: this.channels[channelID].name
-        , command: "PRIVMSG"
         , body: message
         , full_message: event
         }
+
+    //if the channel id is not in the channels list it means the message is 
+    //  directly to the bot
+    if (!this.channels[channelID]) {
+        message_object.server = null
+        message_object.channel = null
+        message_object.command = "direct message"
+
+    //otherwise it is a normal message sent through a channel
+    } else {
+        var serverID = this.channels[channelID].guild_id;
+
+        message_object.server = this.servers[serverID].name
+        message_object.channel = this.channels[channelID].name
+        message_object.prefix.serverID = serverID
+        message_object.command = "PRIVMSG"
+    }
 
     this.log('debug', message_object);
     this.botApp.emit('message',message_object);
@@ -64,15 +77,18 @@ DiscordConnection.prototype.onMessage = function(user, userID, channelID, messag
 //**Helper Functions**//
 
 //Send a message using the discord protocol
-function sendMessages(ID, messageArr, interval) {
+DiscordConnection.prototype.sendMessages = function(ID, messageArr, interval) {
 	var resArr = [], len = messageArr.length;
 	var callback = typeof(arguments[2]) === 'function' ?  arguments[2] :  arguments[3];
 	if (typeof(interval) !== 'number') interval = 1000;
-
+        
+        //make discord client accessible to function
+        var client = this
 	function _sendMessages() {
+                var that = this.DiscordConnection
 		setTimeout(function() {
 			if (messageArr[0]) {
-				this.client.sendMessage({
+				client.sendMessage({
 					to: ID,
 					message: messageArr.shift()
 				}, function(err, res) {
