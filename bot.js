@@ -18,11 +18,14 @@ Bot = exports.Bot = function(plugins, debug){
     //load the module with the plugin and pass the plugin config to 
     //  its init function. not plugins need the bot object and a conf file.
     for (plugin in plugins){
-        this.log("core", "info", "Loaded plugin: "+plugin)
+        
         //TODO:handle errors when the given plugin name does not correspond to a file.
         //TODO: Make sure each plugin only has one config file. i.e. a plugin is only initiated once.  
         require("./plugins/"+plugin).Plugin(this, plugins[plugin]);
+        this.log("core", "info", "Loaded plugin: "+plugin)
     };
+
+    
 };
 
 //make bot a child of EventEmitter
