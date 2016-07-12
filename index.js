@@ -1,7 +1,7 @@
 //code that creates/initiates bots and plugin manager
 
 //debug messages are on if true
-var debug = true
+var debug = false
 
 /*
 irc_protocol:{
@@ -20,7 +20,10 @@ irc_protocol:{
 
 var plugins = {
     discord_protocol:{
-        token:""
+        token:"MjAwNDE1NzAxNDk0NjYxMTIw.Cl87LQ.wCP-mJ8is_mr_Qp46u-y0AKWlm8"
+    },
+    dice_roller:{
+        command_str:"!dice"
     },
     message_logger:{
         directory: "static/logs"
