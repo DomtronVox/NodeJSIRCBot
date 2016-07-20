@@ -20,10 +20,10 @@ irc_protocol:{
 
 var plugins = {
     discord_protocol:{
-        token:"MjAwNDE1NzAxNDk0NjYxMTIw.Cl87LQ.wCP-mJ8is_mr_Qp46u-y0AKWlm8"
+        token:""
     },
     dice_roller:{
-        command_str:"!dice"
+        command_str:["!dice", "!d"]
     },
     message_logger:{
         directory: "static/logs"
