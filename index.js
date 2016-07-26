@@ -1,7 +1,7 @@
 //code that creates/initiates bots and plugin manager
 
 //debug messages are on if true
-var debug = true
+var debug = false
 
 /*
 

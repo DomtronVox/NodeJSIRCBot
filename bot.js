@@ -9,7 +9,7 @@ var EventEmitter = require('events').EventEmitter;
 Bot = exports.Bot = function(plugins, debug){
     //set debug variable
     this.DEBUG = debug    
-    
+
     //setup error event handling
     this.on('error', function(msg){this.log("core", "error", msg)});
     //this.on('message', function(msg){this.log("debug", msg)});
@@ -34,7 +34,7 @@ Bot.prototype = EventEmitter.prototype
 //handle logging messages
 Bot.prototype.log = function(plugin, type, msg){ 
     //only print debug messages if debug is true
-    if(type != "debug" || this.debug) {
+    if(type != "debug" || this.DEBUG) {
         console.log("["+plugin+"]", type+":", msg);
     }
 };
