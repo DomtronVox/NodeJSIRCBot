@@ -32,12 +32,9 @@ DiceRoller.prototype.onMessage = function(message) {
 
     //if the message contains the right key words. Roll some dice!
     var text = message.body;
-    console.log(this.command_str)
+
     for ( var command_str in this.command_str ) {
         command_str = this.command_str[command_str]
-        console.log(command_str)
-        console.log(command_str.length)
-        console.log(text.substring(0, command_str.length))
         if (text.substring(0, command_str.length) == command_str) {
         
             //take out the command string and trim white space from either end.
@@ -56,6 +53,8 @@ DiceRoller.prototype.onMessage = function(message) {
             var new_msg = message
             new_msg.body = "["+roll_ops.join('')+"] = ["
                          + dice_rolls.toString()+"] = "+final_result
+
+            new_msg.nick = new_msg.username = "@bot"
 
             this.log("debug", "return message: " + new_msg.body);
         
@@ -77,10 +76,11 @@ DiceRoller.prototype.evaluateRollRequest = function(text) {
     //what needs to be done to text
     // * strip out any non dice format strings and drop it in the note var
     // * find text in dice format (d# or #d# or d#b# or #d#b#)
-    // * find stand alone numbers
-    // * if multiple dice formats + stand alone numbers, find operators between each
-    // * roll dice formats and use operators to merge them
-    // * 
+    // * find stray numbers
+    // * find math operators
+    // * if multiple dice formats + stray numbers, find operators between each
+    // * roll dice formats and use operators to merge them with stray numbers
+    // * return data
 
     var no_match = false
       , _match = ""
