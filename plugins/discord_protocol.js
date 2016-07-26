@@ -97,7 +97,7 @@ DiscordConnection.prototype.onSendMessage = function(message_object) {
         //TODO alternativly edit sendMessages to use a string instead of an array
         this.sendMessages(message_object.prefix.channelID, [message_object.body])
     } else {
-        this.log("debug", "Ignoring send message event because it is not using discord.")
+        this.log("debug", "Ignoring send message event because it is not using discord protocol.")
     }
 }
 

@@ -1,26 +1,27 @@
 //code that creates/initiates bots and plugin manager
 
 //debug messages are on if true
-var debug = false
+var debug = true
 
 /*
-irc_protocol:{
-        servers: {
-            server_1: {
-                nick: "domtest",
-                username: "TestBot",
-                realname: "TestBot",
-                host: "irc.nightstar.net",
-                port: "6667",
-                channels: ['#test221']
-            }
-        }
-    }
+
 */
 
 var plugins = {
     discord_protocol:{
-        token:""
+        token:"<redacted>"
+    },
+    irc_protocol:{
+        servers: {
+            server_1: {
+                nick: "domsbot",
+                username: "TestBot",
+                realname: "TestBot",
+                host: "irc.nightstar.net",
+                port: "6667",
+                channels: ['#bendhacknslash']
+            }
+        }
     },
     dice_roller:{
         command_str:["!dice", "!d"]
