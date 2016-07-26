@@ -1,0 +1,29 @@
+{
+  "name": "ChatBot",
+  "description": "A pluggable chat bot framework.",
+  "version": "0.2.0",
+  "author": {
+    "name": "Domtron Vox",
+    "email": "Domtron.vox@gmail.com"
+  },
+  "contributors": [
+    {
+      "name": "Domtron Vox",
+      "email": "Domtron.vox@gmail.com"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/martynsmith/node-irc"
+  },
+  "main": "index.js",
+  "engines": {
+    "node": ">=0.10.0"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "irc": ">=0.5.0",
+    "roll": ">=1.1.0",
+  },
+  "readmeFilename": "README.md",
+}
