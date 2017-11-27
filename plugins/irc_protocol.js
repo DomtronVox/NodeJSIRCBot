@@ -30,7 +30,7 @@ Connection = function(bot, config){
     this.realname = config.realname || "IRC Bot"
 
     //the connection's server and port 
-    this.host = config['host'];
+    this.server = config['host'];
     this.port = config['port'];
 
     //in what text encoding to send data in
@@ -42,13 +42,23 @@ Connection = function(bot, config){
     //bot variable for relaying parsed messages, and basic information
     this.bot = bot;
 
-    this.client = new irc.Client(this.host, this.nick, {
+    this.client = new irc.Client(this.server, this.nick, {
         channels: this.channels
+      , username: this.username
+      , realname: this.realname
+      , port: this.port
+      , floodProtection: true //keeps bot from getting kicked for flooding
+      , autoRejoin: true
     })
 
     //add listeners to the irc client for this server
     this.client.on('message', this.onMessage.bind(this));
+    this.client.on('invite', this.onInvite.bind(this));
+    this.client.on('names', this.onOthersJoin.bind(this));
+    this.client.on('join', this.onOthersJoin.bind(this));
     this.client.on('error', this.onError.bind(this));
+    this.client.on('registered', this.onConnect.bind(this));
+    this.client.on('quit', this.onDisconnect.bind(this));
 
     //add listeners to the bot for this server
     bot.on("send message", this.sendMessage.bind(this));
@@ -64,46 +74,55 @@ Connection.prototype.onError = function(msg) {
     this.log("error", msg)
 }
 
-
 //connects to an irc server
 Connection.prototype.onConnect = function(){
-    
+    this.log("info", "Connected to "+this.server+"!")  
 };
 
 //disconnect from the server
 Connection.prototype.onDisconnect = function (){
-    
+    this.log("info", "Disconnected from "+this.server+"! Will try to auto rejoin in a bit.")
 };
 
 
 //parse the incoming string message to a dictionary
-Connection.prototype.onMessage = function(from, to, message) {
-    this.log("debug", "Server: "+this.host + 
-                      "; Channel: " + to + 
-                      "; Speaker: " + from + 
-                      "; Message: " + message)
-    
-    //variables to store the msg parts
-     var prefix  = " "
-       , nick    = from
-       , username= " "
-       , channel = to
-       , command = "PRIVMSG"
-       , body    = message;
+Connection.prototype.onMessage = function(speaker, channel, body, irc_message) {
+    this.log("debug", "Server: "+this.server + 
+                      "; Channel: " + channel + 
+                      "; Speaker: " + speaker + 
+                      "; Message: " + body)
+    console.log(irc_message)
+    //check type of message
+    var type;
+    if (channel == this.nick) {
+        type = "pm"
+    } else {
+        type = "channel"
+    } 
+ 
+    //emit the message event
+    this.bot.emit('message', this.buildMessage(irc_message, type, channel, body));
      
-     //emit the message event
-     this.bot.emit('message',
-        { protocol: "Internet Relay Chat" 
-        , server: this.host
-        , prefix: prefix.trim()
-        , nick: nick.trim()
-        , username: username.trim()
-        , channel: channel.trim() 
-        , command: command.trim()
-        , body: body.trim()
-        , full_message: {"from":from, "to":to, "message":message}
-        });
-     
+};
+
+//handle when a user joins or the initial list of users in a channel
+Connection.prototype.onInvite = function (channel, requester, irc_message){
+    console.log("channel:", channel, "; requester:", requester)
+    console.log(message)
+
+    this.bot.emit("invite request", this.buildMessage(irc_message, "invite", channel, ""));
+};
+
+//handle when a user joins or the initial list of users in a channel
+Connection.prototype.onOthersJoin = function (channel, nick, message){
+    console.log("channel:", channel, "; nick(s):", nick)
+    console.log(message)
+
+    //if nick is a string it is a single nick so for consistancy we will wrap it in a
+    //    dictionary.
+    if (typeof(nick) == "string") { nick = { nick: '' }; }
+
+    this.bot.emit("user online", this.buildMessage(irc_message, "join", channel, nick));
 };
 
 //handle sending messages through IRC
@@ -112,15 +131,34 @@ Connection.prototype.sendMessage = function(message_object) {
     if (message_object.protocol == "Internet Relay Chat" ||
         message_object.protocol.toLowerCase() == "irc") {
         //make sure the message is for this server
-        if (message_object.server == this.host) {
+        if (message_object.server == this.server) {
             //send the message to the channel
             this.client.say(message_object.channel, message_object.body);
         } else {
-            this.log("debug", "Ignoring send message event because it is not for my IRC server ("+this.host+").")
+            this.log("debug", "Ignoring send message event because it is not for my IRC server ("+this.server+").")
         }
     } else {
         this.log("debug", "Ignoring send message event because it is not using IRC protocol.")
     }
 }
 
+//construct a message object from irc's (the library) message object
+Connection.prototype.buildMessage = function(irc_message, channel, type, body) {
 
+    return { 
+         protocol: "Internet Relay Chat"
+       , myident: { nick: this.nick, username: this.username, realname: this.realname}
+       , server: this.server
+
+       , prefix: irc_message.prefix
+       , nick: irc_message.nick
+       , username: irc_message.user
+       , realname: "unknown"
+
+       , channel: channel
+       , type: type
+       , body: body
+       , full_message: irc_message
+       }
+
+}
