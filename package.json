@@ -4,7 +4,7 @@
   "description": "A pluggable chat bot framework.",
   "main": "index.js",
   "dependencies": {
-    "discord.io": "^2.5.1",
+    "discord.js": "^11.2.1",
     "irc": "^0.5.2",
     "roll": "^1.2.0"
   },

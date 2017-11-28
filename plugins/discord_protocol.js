@@ -11,27 +11,32 @@
 //  "send message" - 
 
 
-var Discord = require('discord.io');
+var Discord = require('discord.js');
 
 exports.Plugin = function(bot, config){
     new DiscordConnection(bot, config);
 }
 
 DiscordConnection = function(bot, config){
-    //setup discord client
-    this.client = new Discord.Client({
-        token: config.token || "",
-        autorun: true
-    });
+    //setup some variables first
+    //>setup discord client
+    this.client = new Discord.Client();
 
-    this.bot = bot
+    //>bot referance for communication with other plugins
+    this.bot = bot;
+
+    //>Login token
+    this.token = config.token || "";
 
     //setup discord client listeners
-    this.client.on('ready', this.onConnect.bind(this))
-    this.client.on('message', this.onMessage.bind(this))
+    this.client.on('ready', this.onConnect.bind(this));
+    this.client.on('message', this.onMessage.bind(this));
     
     //setup plugin crosstalk listeners
-    this.bot.on('send message', this.onSendMessage.bind(this))
+    this.bot.on('send message', this.onSendMessage.bind(this));
+
+    //connect to discord
+    this.client.login(this.token);
 }
 
 DiscordConnection.prototype.log = function(level, msg) {
@@ -41,50 +46,53 @@ DiscordConnection.prototype.log = function(level, msg) {
 DiscordConnection.prototype.onConnect = function() {
     //print out link to invite this bot to the server
     var url = "https://discordapp.com/oauth2/authorize?client_id="
-            + this.client.id
+            + this.client.user.id
             + "&scope=bot&permissions=0"
 
-    this.log("info", "Use this url to invite the bot to your server: "+url)
+    this.log("info", "Use this url to invite the bot to your server: "+url);
 
     //say the connection is established
-    this.log("info", "Discord connection is up!")
-    this.bot.emit("connected", {protocal:"discord", server:""})
-    //TODO: loop through servers and emit an even for each
+    this.log("info", "Discord connection is up!");
+    this.bot.emit("connected", {protocal:"discord", server:""});
+    //TODO: loop through servers and emit an event for each
 }
 
-DiscordConnection.prototype.onMessage = function(user, userID, channelID, message, event) {
-    var client = this.client  
+//format incomming messages in the bot's message format
+DiscordConnection.prototype.onMessage = function(discordjs_message) {
+    var client = this.client
+      , author = discordjs_message.author 
+      , channel = discordjs_message.channel
+      , content = discordjs_message.content
 
-    if (message === "ping") {
+    if (content === "ping") {
 	this.sendMessages(channelID, ["Pong"]); //Sending a message with our helper function
     }
    
     //build the common parts of the message object
     var message_object = { 
           protocol: "discord"
-        , prefix: {userID:userID, channelID:channelID}
-        , nick: user
-        , username: user+'#'+userID
-        , body: message
-        , full_message: event
+        , prefix: {"userID":author.id, "channelID":channel.id}
+        , username: author.username
+        , body: content
+        , full_message: discordjs_message
+        , channel: channel.name
         }
 
-    //if the channel id is not in the channels list it means the message is 
-    //  directly to the bot
-    if (!client.channels[channelID]) {
-        message_object.server = null
-        message_object.channel = null
-        message_object.command = "direct message"
+    //Messages with a channel of the type text comes from a server channel
+    if (channel.type == "text") {
+        message_object.server = channel.guild.name;
+        message_object.prefix.serverID = channel.guild.id;
+        message_object.nick = channel.members.get(author.id).displayName;
+        message_object.command = "server";
 
-    //otherwise it is a normal message sent through a channel
+    //otherwise it is a message sent through a channel unrelated to a server
     } else {
-        var serverID = client.channels[channelID].guild_id;
-
-        message_object.server = client.servers[serverID].name
-        message_object.channel = client.channels[channelID].name
-        message_object.prefix.serverID = serverID
-        message_object.command = "PRIVMSG"
+        message_object.server = "pm";
+        message_object.nick = author.username;
+        message_object.command = "channel";
     }
+
+    
 
     this.log('debug', message_object);
     this.bot.emit('message', message_object);
@@ -105,16 +113,23 @@ DiscordConnection.prototype.onSendMessage = function(message_object) {
 
 //Send a message using the discord protocol
 DiscordConnection.prototype.sendMessages = function(ID, messageArr, interval) {
-    var resArr = [], len = messageArr.length;
-    var callback = typeof(arguments[2]) === 'function' ?  arguments[2] :  arguments[3];
-    if (typeof(interval) !== 'number') interval = 1000;
+    //var resArr = [], len = messageArr.length;
+    //var callback = typeof(arguments[2]) === 'function' ?  arguments[2] :  arguments[3];
+    //if (typeof(interval) !== 'number') interval = 1000;
         
     //make discord client accessible to function
-    var that = this.client
+    var channel = this.client.channels.get(ID)
+
+    //TODO probebly needs more work
+    if (channel != undefined) {
+        channel.send(messageArr);
+    }
+
+    /* Why did I write this O.o?
     function _sendMessages() {
         setTimeout(function() {
             if (messageArr[0]) {
-                that.sendMessage({
+                client.sendMessage({
                     to: ID,
                      message: messageArr.shift()
                 }, function(err, res) {
@@ -132,7 +147,7 @@ DiscordConnection.prototype.sendMessages = function(ID, messageArr, interval) {
             }
         }, interval);
     }
-    _sendMessages();
+    _sendMessages();*/
 }
 
 //calculate permisions
