@@ -70,7 +70,7 @@ RPGGame.prototype.handleRequest = function(message, text) {
     var new_text; //message to send in response
     var valid_command = false
 
-    //go through each command, see if it matches the request and handel it
+    //go through each command, see if it matches the request and handle it
     for (var command in this.rpg_commands){
         command = this.rpg_commands[command];
 
@@ -105,10 +105,10 @@ RPGGame.prototype.handleRequest = function(message, text) {
 }
 
 //get and validate the character
-RPGGame.prototype.getCharacter = function(char_name) {
+RPGGame.prototype.getCharacter = function(user_name, char_name) {
 
     var character;
-    if (this.player_database[message.username] == char_name) {
+    if (this.player_database[user_name] == char_name) {
         character = this.game_data.CharacterManager.characters[char_name];
         if (character == undefined) { 
             character = "Sorry, character '"+char_name+"' does not exist."; 
@@ -128,7 +128,8 @@ RPGGame.prototype.getCharacter = function(char_name) {
 // the commands regex match, number of arguments, and name of the function to run
 
 //usage text
-RPGGame.prototype.rpg_commands.push({text:"help", func: "helpText", args:[]});
+RPGGame.prototype.rpg_commands.push({text:"help", func: "helpText", args:[]
+                                    ,desc:"Print out help text for this command."});
 RPGGame.prototype.helpText = function(message){
     var help_text = "Usage Info: \n"; 
 
@@ -145,8 +146,24 @@ RPGGame.prototype.helpText = function(message){
     //rpg commands
     for (var com in this.rpg_commands) {
         com = this.rpg_commands[com]
-        help_text += "- "+com.text+" \t Data: "+com.args.length+".\n";
-        //TODO loop over argument list and added them to sentance
+        help_text += "- "+com.text+" "
+
+        //if there are aguments print their names.
+        if (com.args.length > 0) {
+            for (var index in com.args){
+                help_text += "<"+com.args[index]+">, ";
+            }
+            //cut final comma
+            help_text = help_text.substring(0,help_text.length-2) + " ";
+
+        //otherwise just add a newline and move on
+        }
+
+        if (com.desc) {
+            help_text += ": " + com.desc;
+        }
+        
+        help_text += '\n';        
     }
 
     return help_text;
@@ -154,9 +171,11 @@ RPGGame.prototype.helpText = function(message){
 
 
 //create a new character
-RPGGame.prototype.rpg_commands.push({text:"create character", func: "createCharacter", args:["name"]})
+RPGGame.prototype.rpg_commands.push({text:"create character", func: "createCharacter", args:["name"]
+                                    ,desc:"Create a new character (Warning: Replaces existing one)."})
 RPGGame.prototype.createCharacter = function(message, args) {
-    var char_name = args[1].trim()
+    console.log(args)
+    var char_name = args[0].trim()
       , return_text = "";
 
     //TODO do checking
@@ -171,14 +190,15 @@ RPGGame.prototype.createCharacter = function(message, args) {
 
 
 //print out curent character stats
-RPGGame.prototype.rpg_commands.push({text:"stats", func: "characterListStats", args:["name"]})
+RPGGame.prototype.rpg_commands.push({text:"stats", func: "characterListStats", args:["name"]
+                                    ,desc:"List the stats of the given character."})
 RPGGame.prototype.characterListStats = function(message, args) {
     var char_name = args[0].trim()
       , return_text = ""
       , character;
 
     //get the character object
-    character = this.getCharacter(char_name);
+    character = this.getCharacter(message.username, char_name);
     if (typeof(character) == "string") { return character; }
 
     //TODO debugging
@@ -208,7 +228,9 @@ RPGGame.prototype.characterListStats = function(message, args) {
 
 
 //list out character skills
-RPGGame.prototype.rpg_commands.push({text:"skills", func: "characterListSkills", args:["name", "skill name"]})
+RPGGame.prototype.rpg_commands.push({text:"skills", func: "characterListSkills" 
+                                    ,args:["name", "optional:skill name"] 
+                                    ,desc:"List all skills of the given character or detailed info about one skill."})
 RPGGame.prototype.characterListSkills = function(message, args) {
     var char_name = args[0].trim()
       , return_text = ""
