@@ -65,7 +65,7 @@ DiscordConnection.prototype.onMessage = function(discordjs_message) {
       , content = discordjs_message.content
 
     if (content === "ping") {
-	this.sendMessages(channelID, ["Pong"]); //Sending a message with our helper function
+	this.sendMessages(channel.id, ["Pong"]); //Sending a message with our helper function
     }
    
     //build the common parts of the message object
